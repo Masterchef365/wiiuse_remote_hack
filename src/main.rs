@@ -18,26 +18,28 @@ pub struct Message {
     d: u32,
 }
 
+fn recv_latest(socket: &UdpSocket, buf: &mut [u8]) -> std::io::Result<usize> {
+    let mut n_bytes = 0;
+    loop {
+        match socket.recv_from(buf) {
+            Err(e) => {
+                if e.kind() == std::io::ErrorKind::WouldBlock {
+                    break Ok(n_bytes);
+                } else {
+                    Err(e)?;
+                }
+            }
+            Ok((n, _)) => n_bytes = n,
+        }
+    }
+}
+
 fn server() -> Result<()> {
     let socket = UdpSocket::bind("127.0.0.1:12345")?;
     socket.set_nonblocking(true)?;
     let mut buf = [0; 256];
-    let mut n_bytes = 0;
     loop {
-        loop {
-            let ret = socket.recv_from(&mut buf);
-            match ret {
-                Err(e) => {
-                    if e.kind() == std::io::ErrorKind::WouldBlock {
-                        break;
-                    } else {
-                        Err(e)?;
-                    }
-                }
-                Ok((n, _)) => n_bytes = n,
-            }
-        }
-
+        let n_bytes = recv_latest(&socket, &mut buf)?;
         let msg = &buf[..n_bytes];
         if let Ok(data) = bincode::deserialize::<Message>(&msg) {
             dbg!(n_bytes);
