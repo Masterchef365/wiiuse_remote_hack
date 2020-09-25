@@ -1,0 +1,11 @@
+[package]
+name = "wiiuse_remote_hack"
+version = "0.1.0"
+authors = ["Masterchef365 <duncan.freeman1@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+wiiboard = { git = "https://github.com/Masterchef365/WiiBoard.git" }
+serde = { version = "1", features = ["derive"] }
+bincode = "1.3.1"
+anyhow = "1"
